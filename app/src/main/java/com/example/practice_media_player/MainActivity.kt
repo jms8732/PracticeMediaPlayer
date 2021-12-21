@@ -25,6 +25,8 @@ class MainActivity : BindingActivity<ActivityMainBinding>() {
             this@MainActivity.adapter = MusicAdapter()
             adapter = this@MainActivity.adapter
         }
+
+        helper = MediaConnection()
     }
 
     override fun onStart() {
