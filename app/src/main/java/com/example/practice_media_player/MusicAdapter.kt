@@ -10,8 +10,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.practice_media_player.databinding.CellMusicBinding
+import com.orhanobut.logger.Logger
 
-class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.MusicViewHolder>(
+class MusicAdapter(private val helper : MediaHelper) : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.MusicViewHolder>(
     diff
 ){
 
@@ -32,6 +33,8 @@ class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.Music
             }
         }
     }
+
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         return MusicViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.cell_music,parent,false))
     }
@@ -45,7 +48,8 @@ class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.Music
 
         init {
             binding.root.setOnClickListener {
-
+                Logger.e("click play")
+                helper.getTransportControls()?.play()
             }
         }
 

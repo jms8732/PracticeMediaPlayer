@@ -8,6 +8,7 @@ import android.support.v4.media.MediaBrowserCompat
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.practice_media_player.databinding.ActivityMainBinding
+import com.orhanobut.logger.Logger
 
 class MainActivity : BindingActivity<ActivityMainBinding>() {
     override fun getLayoutIds(): Int = R.layout.activity_main
@@ -22,11 +23,11 @@ class MainActivity : BindingActivity<ActivityMainBinding>() {
         binding.musicRecycleView.run {
             layoutManager = LinearLayoutManager(this@MainActivity)
 
-            this@MainActivity.adapter = MusicAdapter()
+            helper = MediaConnection()
+            this@MainActivity.adapter = MusicAdapter(helper)
             adapter = this@MainActivity.adapter
         }
 
-        helper = MediaConnection()
     }
 
     override fun onStart() {
@@ -50,9 +51,16 @@ class MainActivity : BindingActivity<ActivityMainBinding>() {
             helper = MediaConnection()
     }
 
+    //연결되면 음악 준비
     private inner class MediaConnection : MediaHelper(this){
         override fun onChildrenLoaded(children: MutableList<MediaBrowserCompat.MediaItem>) {
             adapter.submitList(children)
+
+            children.forEach {
+                getMediaControllers()?.addQueueItem(it.description)
+            }
+
+            getMediaControllers()?.transportControls?.prepare()
         }
     }
 }

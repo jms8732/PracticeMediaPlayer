@@ -51,7 +51,8 @@ abstract class MediaHelper(private val context: Context) {
 
     protected open fun onChildrenLoaded(children: MutableList<MediaBrowserCompat.MediaItem>) {}
 
-    fun getController() = mediaController?.transportControls
+    fun getTransportControls() = mediaController?.transportControls
+    fun getMediaControllers() = mediaController
 
     init {
         mediaBrowser = MediaBrowserCompat(

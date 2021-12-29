@@ -12,13 +12,16 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
+import com.orhanobut.logger.Logger
 import java.util.concurrent.TimeUnit
 
 class MusicService : MediaBrowserServiceCompat() {
     private val ROOT = "ROOT"
     private lateinit var mSession : MediaSessionCompat
+    private val adapter = PlayerAdapter(this,Listener())
 
 
     override fun onCreate() {
@@ -74,7 +77,8 @@ class MusicService : MediaBrowserServiceCompat() {
                     putString(MediaMetadataCompat.METADATA_KEY_TITLE,title)
                     putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,id.toString())
                 }.build().description
-                
+
+                Logger.e("description: $description")
                 temp.add(MediaBrowserCompat.MediaItem(description,MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
             }
         }
@@ -113,19 +117,25 @@ class MusicService : MediaBrowserServiceCompat() {
 
             if(!mSession.isActive) mSession.isActive = true
 
-            Log.d(TAG, "onPrepare: $mPreparedMedia")
+            Logger.e("onPrepare: $mPreparedMedia")
         }
 
         override fun onPlay() {
-            if(isReadyToPlay()) return
+            //if(isReadyToPlay()) return
+            Logger.e("onPlay")
 
             mPreparedMedia?.run {
+                val id = this.description.mediaId
+                val meta = getMetadata(id)
 
+                Logger.e("prepare meta: $meta")
+
+                adapter.playFile(meta.description.title.toString())
             } ?: onPrepare()
         }
 
         override fun onStop() {
-
+            adapter.onStop()
             mSession.isActive = false
         }
 
@@ -134,10 +144,11 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onPause() {
-            super.onPause()
+            adapter.pause()
         }
 
         override fun onSeekTo(pos: Long) {
+
         }
 
         override fun onSkipToNext() {
@@ -151,6 +162,17 @@ class MusicService : MediaBrowserServiceCompat() {
             mPreparedMedia = null
             onPlay()
         }
+
         private fun isReadyToPlay() = mPlayList.isNotEmpty()
+    }
+
+    inner class Listener : PlaybackStateListener{
+        override fun onPlaybackStateChange(state: PlaybackStateCompat) {
+            Logger.e("state: $state")
+        }
+
+        override fun onPlayComplete() {
+
+        }
     }
 }
