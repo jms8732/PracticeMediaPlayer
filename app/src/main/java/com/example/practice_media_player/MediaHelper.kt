@@ -62,6 +62,10 @@ abstract class MediaHelper(private val context: Context) {
         mediaController?.transportControls?.play()
     }
 
+    fun onPrepared(){
+        mediaController?.transportControls?.prepare()
+    }
+
     init {
         mediaBrowser = MediaBrowserCompat(
             context,

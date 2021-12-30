@@ -2,13 +2,15 @@ package com.example.practice_media_player
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import com.orhanobut.logger.Logger
 import java.lang.Exception
 import java.lang.RuntimeException
 
-class PlayerAdapter(private val context : Context, private val listener : PlaybackStateListener) {
+class PlayerAdapter(private val context: Context, private val listener: PlaybackStateListener) {
     private var mSeekWhileNotPlaying = -1
     private var mCurrentMediaPlayedToCompletion = false
     private var mState = 0
@@ -17,9 +19,8 @@ class PlayerAdapter(private val context : Context, private val listener : Playba
     private var mCurrentMedia: MediaMetadataCompat? = null
 
 
-
-    private fun initializeMediaPlayer(){
-        if(mMediaPlayer == null){
+    private fun initializeMediaPlayer() {
+        if (mMediaPlayer == null) {
             mMediaPlayer = MediaPlayer().apply {
                 setOnCompletionListener {
                     setNewState(PlaybackStateCompat.STATE_PAUSED)
@@ -30,33 +31,13 @@ class PlayerAdapter(private val context : Context, private val listener : Playba
 
     fun getMediaCompat() = mCurrentMedia
 
-    fun playFile(filename: String) {
-        var mediaChanged = (mFilename == null || filename != mFilename)
-
-        if (mCurrentMediaPlayedToCompletion) {
-            mediaChanged = true
-            mCurrentMediaPlayedToCompletion = false
-        }
-
-        if (!mediaChanged) {
-            if (!isPlaying()) {
-                play()
-            }
-            return
-        } else
-            release()
-
-        mFilename = filename
+    fun playFile(uri: Uri) {
         initializeMediaPlayer()
 
         try {
             //디바이스 내에 파일을 읽을 때, 사용
-            val assetFileDescriptor = context.assets.openFd(mFilename)
-            mMediaPlayer?.setDataSource(
-                assetFileDescriptor.fileDescriptor,
-                assetFileDescriptor.startOffset,
-                assetFileDescriptor.length
-            )
+            Logger.e("path: ${uri.path}")
+            mMediaPlayer?.setDataSource(context,uri)
         } catch (e: Exception) {
             throw RuntimeException("Failed to open file: $mFilename", e)
         }
@@ -71,20 +52,20 @@ class PlayerAdapter(private val context : Context, private val listener : Playba
     }
 
     private fun play() {
-        if(mMediaPlayer != null && mMediaPlayer?.isPlaying == false){
+        if (mMediaPlayer != null && mMediaPlayer?.isPlaying == false) {
             mMediaPlayer?.start()
             setNewState(PlaybackStateCompat.STATE_PLAYING)
         }
     }
 
-    fun pause(){
-        if(mMediaPlayer != null && mMediaPlayer?.isPlaying == true){
+    fun pause() {
+        if (mMediaPlayer != null && mMediaPlayer?.isPlaying == true) {
             mMediaPlayer?.pause()
             setNewState(PlaybackStateCompat.STATE_PAUSED)
         }
     }
 
-    private fun setNewState(state : Int){
+    private fun setNewState(state: Int) {
         mState = state
         if (mState == PlaybackStateCompat.STATE_STOPPED) {
             mCurrentMediaPlayedToCompletion = true
@@ -119,7 +100,7 @@ class PlayerAdapter(private val context : Context, private val listener : Playba
         }
     }
 
-    fun onStop(){
+    fun onStop() {
         setNewState(PlaybackStateCompat.STATE_STOPPED)
         release()
     }
@@ -133,12 +114,13 @@ class PlayerAdapter(private val context : Context, private val listener : Playba
         actions = when (mState) {
             PlaybackStateCompat.STATE_STOPPED -> actions or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE
             PlaybackStateCompat.STATE_PLAYING -> actions or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SEEK_TO
-            PlaybackStateCompat.STATE_PAUSED  -> actions or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP
-            else                              -> actions or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE
+            PlaybackStateCompat.STATE_PAUSED -> actions or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP
+            else -> actions or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE
         }
 
         return actions
     }
+
     fun setVolume(volume: Float) {
         mMediaPlayer?.run {
             setVolume(volume, volume)

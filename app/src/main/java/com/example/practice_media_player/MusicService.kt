@@ -52,17 +52,17 @@ class MusicService : MediaBrowserServiceCompat() {
             MediaStore.Audio.Media.DISPLAY_NAME,
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.DURATION
         )
 
-        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
+        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 and " + MediaStore.Audio.Media.MIME_TYPE + "!='application/ogg'"
 
 
-        val int_cursor = contentResolver.query(MediaStore.Audio.Media.INTERNAL_CONTENT_URI,proj,selection,null,null)
+      //  val int_cursor = contentResolver.query(MediaStore.Audio.Media.INTERNAL_CONTENT_URI,proj,selection,null,null)
         val ext_cursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj,selection,null,null)
 
         val temp = mutableListOf<MediaBrowserCompat.MediaItem>()
-        with(MergeCursor(arrayOf(int_cursor,ext_cursor))){
+        with(MergeCursor(arrayOf(ext_cursor))){
             while (moveToNext()){
                 val artist = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
                 val album = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
@@ -91,7 +91,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private inner class MediaSessionCallback  : MediaSessionCompat.Callback(){
         private val mPlayList = ArrayList<MediaSessionCompat.QueueItem>()
-        private var mQueueIndex =- 1
+        private var mQueueIndex = -1
         private var mPreparedMedia : MediaMetadataCompat?= null
 
 
@@ -127,7 +127,8 @@ class MusicService : MediaBrowserServiceCompat() {
                 val id = this.description.mediaId
                 val meta = getMetadata(id)
 
-                adapter.playFile(meta.description.title.toString())
+                val uri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,id)
+                adapter.playFile(uri)
             } ?: onPrepare()
         }
 
