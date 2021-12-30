@@ -48,8 +48,9 @@ class MusicAdapter(private val helper : MediaHelper) : ListAdapter<MediaBrowserC
 
         init {
             binding.root.setOnClickListener {
-                Logger.e("click play")
-                helper.getTransportControls()?.play()
+                val item = getItem(adapterPosition)
+                helper.onPlay(item)
+                //helper.getTransportControls()?.play()
             }
         }
 

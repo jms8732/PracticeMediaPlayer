@@ -78,7 +78,6 @@ class MusicService : MediaBrowserServiceCompat() {
                     putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,id.toString())
                 }.build().description
 
-                Logger.e("description: $description")
                 temp.add(MediaBrowserCompat.MediaItem(description,MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
             }
         }
@@ -121,14 +120,12 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onPlay() {
-            //if(isReadyToPlay()) return
+            if(!isReadyToPlay()) return
             Logger.e("onPlay")
 
             mPreparedMedia?.run {
                 val id = this.description.mediaId
                 val meta = getMetadata(id)
-
-                Logger.e("prepare meta: $meta")
 
                 adapter.playFile(meta.description.title.toString())
             } ?: onPrepare()

@@ -2,11 +2,13 @@ package com.example.practice_media_player
 
 import android.content.ComponentName
 import android.content.Context
+import android.media.MediaMetadata
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import com.orhanobut.logger.Logger
 import kotlin.math.log
 
 abstract class MediaHelper(private val context: Context) {
@@ -17,12 +19,12 @@ abstract class MediaHelper(private val context: Context) {
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             super.onPlaybackStateChanged(state)
-            Log.d(TAG, "onPlaybackStateChanged: ")
+            Logger.e("playbackstate change")
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             super.onMetadataChanged(metadata)
-            Log.d(TAG, "onMetadataChanged: ")
+            Logger.e("meta: $metadata")
         }
     }
 
@@ -54,6 +56,12 @@ abstract class MediaHelper(private val context: Context) {
     fun getTransportControls() = mediaController?.transportControls
     fun getMediaControllers() = mediaController
 
+
+    fun onPlay(meta : MediaBrowserCompat.MediaItem){
+        Logger.e("Meta: $meta")
+        mediaController?.transportControls?.play()
+    }
+
     init {
         mediaBrowser = MediaBrowserCompat(
             context,
@@ -61,8 +69,7 @@ abstract class MediaHelper(private val context: Context) {
             MediaBrowserConnectionCallback(),
             null
         )
-
-        Log.d(TAG, "MediaHelper init: ")
+        Logger.e("mediaBrowser init")
     }
 
     fun onStart(){
