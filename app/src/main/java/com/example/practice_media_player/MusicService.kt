@@ -127,6 +127,8 @@ class MusicService : MediaBrowserServiceCompat() {
                 val id = this.description.mediaId
                 val meta = getMetadata(id)
 
+                Logger.e("Title: ${description}")
+
                 val uri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,id)
                 adapter.playFile(uri)
             } ?: onPrepare()
@@ -137,8 +139,12 @@ class MusicService : MediaBrowserServiceCompat() {
             mSession.isActive = false
         }
 
-        override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
-            super.onPlayFromUri(uri, extras)
+
+        override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
+            mPreparedMedia = getMetadata(mediaId)
+            mSession.setMetadata(mPreparedMedia)
+
+            if(!mSession.isActive) mSession.isActive = true
         }
 
         override fun onPause() {

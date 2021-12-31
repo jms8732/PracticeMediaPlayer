@@ -37,6 +37,8 @@ class PlayerAdapter(private val context: Context, private val listener: Playback
         try {
             //디바이스 내에 파일을 읽을 때, 사용
             Logger.e("path: ${uri.path}")
+
+            //동기화의 문제 / MediaPlayer 생명주기 참조
             mMediaPlayer?.setDataSource(context,uri)
         } catch (e: Exception) {
             throw RuntimeException("Failed to open file: $mFilename", e)

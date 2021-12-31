@@ -3,6 +3,7 @@ package com.example.practice_media_player
 import android.content.ComponentName
 import android.content.Context
 import android.media.MediaMetadata
+import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -56,14 +57,17 @@ abstract class MediaHelper(private val context: Context) {
     fun getTransportControls() = mediaController?.transportControls
     fun getMediaControllers() = mediaController
 
+    fun onPause(){
+        mediaController?.transportControls?.pause()
+    }
 
-    fun onPlay(meta : MediaBrowserCompat.MediaItem){
-        Logger.e("Meta: $meta")
+
+    fun onPlay(){
         mediaController?.transportControls?.play()
     }
 
-    fun onPrepared(){
-        mediaController?.transportControls?.prepare()
+    fun onPrepared(id : String?){
+        mediaController?.transportControls?.prepareFromMediaId(id, Bundle())
     }
 
     init {
