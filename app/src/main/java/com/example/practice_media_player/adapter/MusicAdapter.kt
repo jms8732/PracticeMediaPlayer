@@ -1,39 +1,37 @@
-package com.example.practice_media_player
+package com.example.practice_media_player.adapter
 
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import com.example.practice_media_player.BaseViewHolder
+import com.example.practice_media_player.R
 import com.example.practice_media_player.databinding.CellMusicBinding
 import com.orhanobut.logger.Logger
 
-class MusicAdapter(private val helper : MediaHelper) : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.MusicViewHolder>(
+class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem,MusicAdapter.MusicViewHolder>(
     diff
-){
-
+) {
     companion object{
         val diff = object : DiffUtil.ItemCallback<MediaBrowserCompat.MediaItem>(){
             override fun areItemsTheSame(
                 oldItem: MediaBrowserCompat.MediaItem,
                 newItem: MediaBrowserCompat.MediaItem
             ): Boolean {
-                return oldItem.description.mediaId == newItem.description.mediaId
+                return oldItem == newItem
             }
 
             override fun areContentsTheSame(
                 oldItem: MediaBrowserCompat.MediaItem,
                 newItem: MediaBrowserCompat.MediaItem
             ): Boolean {
-                return oldItem.hashCode() == newItem.hashCode()
+                return oldItem.mediaId == newItem.mediaId
             }
+
         }
     }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         return MusicViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.cell_music,parent,false))
@@ -43,23 +41,14 @@ class MusicAdapter(private val helper : MediaHelper) : ListAdapter<MediaBrowserC
         holder.bind(position)
     }
 
-    inner class MusicViewHolder(view : View) : RecyclerView.ViewHolder(view){
-        val binding = DataBindingUtil.bind<CellMusicBinding>(view)!!
-
-        init {
-            binding.root.setOnClickListener {
-                val item = getItem(adapterPosition)
-                helper.onPause()
-                helper.onPrepared(item.mediaId)
-                helper.onPlay()
-            }
-        }
-
-        fun bind(position: Int){
-            val meta = binding.root.context.getMetadata(getItem(position).mediaId)
-            with(meta) {
-                binding.title.text = getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                binding.artist.text = getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+    inner class MusicViewHolder(view : View) : BaseViewHolder<CellMusicBinding>(view){
+        fun bind(position : Int){
+            binding.let {
+                val item = getItem(position)
+                item.description.run {
+                    binding.title.text = title
+                }
+                binding.executePendingBindings()
             }
         }
     }

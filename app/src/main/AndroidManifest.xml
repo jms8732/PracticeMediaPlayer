@@ -15,7 +15,7 @@
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.Practice_media_player">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MusicListActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".MusicService"
+        <service android:name=".service.MusicService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
