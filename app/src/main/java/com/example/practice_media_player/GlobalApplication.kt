@@ -1,6 +1,8 @@
 package com.example.practice_media_player
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
 
@@ -14,5 +16,6 @@ class GlobalApplication : Application() {
             }
         })
 
+        AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
     }
 }

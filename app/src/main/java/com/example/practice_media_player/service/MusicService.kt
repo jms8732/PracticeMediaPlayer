@@ -8,10 +8,11 @@ import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.practice_media_player.MusicLibrary
 import com.example.practice_media_player.MusicLibrary.loadMusicList
+import com.orhanobut.logger.Logger
 
 class MusicService : MediaBrowserServiceCompat() {
-    private var mediaSession : MediaSessionCompat? = null
-    private val mediaSessionCallback = object : MediaSessionCompat.Callback(){
+    private var mediaSession: MediaSessionCompat? = null
+    private val mediaSessionCallback = object : MediaSessionCompat.Callback() {
         override fun onAddQueueItem(description: MediaDescriptionCompat?, index: Int) {
             super.onAddQueueItem(description, index)
         }
@@ -31,7 +32,7 @@ class MusicService : MediaBrowserServiceCompat() {
         mediaSession = MediaSessionCompat(
             applicationContext,
             "MusicService",
-            ComponentName(applicationContext,this.javaClass),
+            ComponentName(applicationContext, this.javaClass),
             null
         ).apply {
             setCallback(mediaSessionCallback)
@@ -45,14 +46,24 @@ class MusicService : MediaBrowserServiceCompat() {
         clientUid: Int,
         rootHints: Bundle?
     ): BrowserRoot? {
-        return BrowserRoot(MusicLibrary.ROOT_ID,null)
+        return BrowserRoot(MusicLibrary.ROOT_ID, null)
     }
 
+
+    /**
+     * 화면 이동시, 계속 호출 됨 -> if문이 없을 경우, recyclerview의 아이템이 계속 갱신되는 현상 발생
+     */
     override fun onLoadChildren(
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
-        val musics = loadMusicList()
-        result.sendResult(musics)
+        Logger.e("onLoadChildren")
+        if (MusicLibrary.libraries[MusicLibrary.KEY]?.isEmpty() == true) {
+            val musics = loadMusicList()
+            result.sendResult(musics)
+            return
+        }
+
+        result.sendResult(null)
     }
 }
