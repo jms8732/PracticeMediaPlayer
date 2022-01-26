@@ -4,11 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <variable
+            name="item"
+            type="android.support.v4.media.MediaMetadataCompat" />
+        
+        <variable
+            name="vm"
+            type="com.example.practice_media_player.viewModel.MusicListActivityViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="@{() -> vm.onClick(item)}"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginTop="5dp"

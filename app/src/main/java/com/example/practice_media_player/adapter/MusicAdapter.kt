@@ -17,9 +17,10 @@ import com.example.practice_media_player.MusicLibrary
 import com.example.practice_media_player.R
 import com.example.practice_media_player.databinding.CellMusicBinding
 import com.example.practice_media_player.ui.MusicDetailActivity
+import com.example.practice_media_player.viewModel.MusicListActivityViewModel
 import com.orhanobut.logger.Logger
 
-class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem, MusicAdapter.MusicViewHolder>(
+class MusicAdapter(private val vm : MusicListActivityViewModel) : ListAdapter<MediaBrowserCompat.MediaItem, MusicAdapter.MusicViewHolder>(
     diff
 ) {
     companion object {
@@ -52,19 +53,6 @@ class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem, MusicAdapter.Musi
     }
 
     inner class MusicViewHolder(view: View) : BaseViewHolder<CellMusicBinding>(view) {
-        init{
-            view.rootView.setOnClickListener {
-                val item = getItem(adapterPosition).run {
-                        MusicLibrary.libraries[MusicLibrary.KEY]?.first { it.description.mediaId == description.mediaId }
-                }
-
-                Intent(view.context,MusicDetailActivity::class.java).let {
-                    it.putExtra("data",item)
-                    view.context.startActivity(it)
-                }
-            }
-        }
-
         fun bind(position: Int) {
             binding.let {
                 val item = getItem(position).run {
@@ -72,11 +60,12 @@ class MusicAdapter : ListAdapter<MediaBrowserCompat.MediaItem, MusicAdapter.Musi
                 }
 
                 item?.let {
+                    binding.item = it
+                    binding.vm = vm
                     binding.title.text = it.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
                     binding.artist.text = it.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
 
                     val uri = it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
-                    Logger.i("uri: $uri")
                     Glide.with(binding.imageView)
                         .load(uri)
                         .placeholder(R.drawable.ic_launcher_foreground)

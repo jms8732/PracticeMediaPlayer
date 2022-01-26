@@ -25,6 +25,7 @@
         </activity>
 
         <activity android:name=".ui.MusicDetailActivity"
+            android:launchMode="singleTop"
             android:exported="true"/>
 
 

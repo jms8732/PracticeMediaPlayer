@@ -2,12 +2,10 @@ package com.example.practice_media_player.helper
 
 import android.content.ComponentName
 import android.content.Context
-import android.media.browse.MediaBrowser
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.example.practice_media_player.MusicLibrary
 import com.example.practice_media_player.service.MusicService
 import com.orhanobut.logger.Logger
 
@@ -15,15 +13,19 @@ import com.orhanobut.logger.Logger
  * 순서
  * 1. MediaBrowser 생성
  * 2. 연결되면 MediaController
- * 3. MediaBrowser subscribe
+ * 3. MediaBrowser subscribe -> 구독이 완료되면 onChildrenLoaded 메소드에서 미디어 리스트들이 내려온다.
+ *
  */
 abstract class MusicServiceHelper(context: Context) {
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaController: MediaControllerCompat? = null
+    var mediaTransportController : MediaControllerCompat.TransportControls? = null
 
     abstract fun onChildLoaded(
         children : MutableList<MediaBrowserCompat.MediaItem>
     )
+
+    abstract fun onPlaybackStateChanged(state : PlaybackStateCompat?)
 
     fun connect(){
         mediaBrowser?.connect()
@@ -36,11 +38,11 @@ abstract class MusicServiceHelper(context: Context) {
     private val mediaControllerCallback = object : MediaControllerCompat.Callback(){
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             super.onPlaybackStateChanged(state)
+            this@MusicServiceHelper.onPlaybackStateChanged(state)
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             super.onMetadataChanged(metadata)
-            Logger.i("meta change")
         }
     }
 
@@ -62,6 +64,7 @@ abstract class MusicServiceHelper(context: Context) {
                 mediaController = MediaControllerCompat(context, it.sessionToken).apply {
                     registerCallback(mediaControllerCallback)
                 }
+                mediaTransportController = mediaController?.transportControls
 
                 it.subscribe(it.root, mediaBrowserSubscriptionCallback)
             }
