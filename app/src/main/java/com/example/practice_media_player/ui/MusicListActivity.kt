@@ -89,7 +89,7 @@ class MusicListActivity : BaseActivity<ActivityMusicListBinding>() {
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            Logger.i("onPlaybackstatechanged")
+            Logger.i("onPlaybackStateChanged")
         }
     }
 }

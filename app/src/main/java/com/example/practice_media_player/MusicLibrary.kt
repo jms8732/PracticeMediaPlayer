@@ -68,6 +68,10 @@ object MusicLibrary {
 
                 libraries[KEY]?.add(mediaItem)
 
+                /**
+                 * flag에 따라서 Android auto 및 서비스에 표현되는 방식이 달라짐
+                 * FLAG_PLAYABLE / FLAG_BROWSABLE
+                 */
                 ret.add(
                     MediaBrowserCompat.MediaItem(
                         mediaItem.description,
