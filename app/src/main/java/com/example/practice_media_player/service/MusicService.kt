@@ -3,76 +3,98 @@ package com.example.practice_media_player.service
 import android.content.ComponentName
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.practice_media_player.MusicLibrary
+import com.example.practice_media_player.MusicLibrary.findMetaData
 import com.example.practice_media_player.MusicLibrary.loadMusicList
 import com.example.practice_media_player.listener.PlaybackInfoListener
+import com.example.practice_media_player.notification.MusicNotificationManager
 import com.example.practice_media_player.player.PlayAdapter
 import com.orhanobut.logger.Logger
 
 class MusicService : MediaBrowserServiceCompat() {
     private var mediaSession: MediaSessionCompat? = null
+    private var musics: MutableList<MediaBrowserCompat.MediaItem>? = null
+    private val manager: MusicNotificationManager by lazy {
+        MusicNotificationManager(this)
+    }
+
     /**
      * MediaSession callback을 통해서 Media Controller 된 정보들을 받는다. (ex. 음악 실행 / 음악 일시 중지 / 다음 음악 / 이전 음악)
      */
     private val mediaSessionCallback = object : MediaSessionCompat.Callback() {
         private var mQueueIndex = -1
-        private val mPlayList = ArrayList<MediaSessionCompat.QueueItem>()
-        private var mPreparedItem : MediaMetadataCompat?= null
 
-        override fun onAddQueueItem(description: MediaDescriptionCompat?, index: Int) {
-            mPlayList.add(MediaSessionCompat.QueueItem(description,description.hashCode().toLong()))
+        override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
+            Logger.i("onPrepareFromMediaId: $mediaId")
 
-        }
+            if (mQueueIndex < 0 && isReadyToPlay()) return
 
-        override fun onPrepare() {
-            super.onPrepare()
+            findMetaData(mediaId)?.let {
+                mediaSession?.setMetadata(it)
 
-        }
-
-        override fun onPlay() {
-            super.onPlay()
-            playback.play()
+                if (mediaSession?.isActive == false)
+                    mediaSession?.isActive = true
+            }
         }
 
         override fun onStop() {
-            super.onStop()
             playback.stop()
         }
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-            super.onPlayFromMediaId(mediaId, extras)
+            mQueueIndex = musics?.indexOfFirst { it.description.mediaId == mediaId } ?: -1
+            Logger.i("size: ${musics?.size} QueueIndex: $mQueueIndex")
+
+            if (!isReadyToPlay()) return
+
+            onPrepareFromMediaId(mediaId, extras)
+            playback.playFromMediaId(mediaId)
         }
 
         override fun onPause() {
-            super.onPause()
+            playback.pause()
         }
 
         override fun onSkipToNext() {
-            super.onSkipToNext()
         }
 
         override fun onSkipToPrevious() {
-            super.onSkipToPrevious()
+
         }
 
+        private fun isReadyToPlay() = musics?.isNotEmpty() ?: false
     }
 
-    private val listener = object : PlaybackInfoListener{
+    private val listener = object : PlaybackInfoListener {
+        private val serviceManager = NotificationServiceManager()
+
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             mediaSession?.setPlaybackState(state)
+
+            state?.let {
+                when(it.state){
+                    PlaybackStateCompat.STATE_PLAYING -> serviceManager.moveServiceOutStartedState(it)
+                    PlaybackStateCompat.STATE_PAUSED -> serviceManager.updateNotificationForPause(it)
+                    PlaybackStateCompat.STATE_STOPPED -> serviceManager.moveServiceToStatedState(it)
+                }
+            }
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             mediaSession?.setMetadata(metadata)
         }
-    }
-    private val playback = PlayAdapter(listener)
 
+        override fun onPlayCompleted() {
+
+        }
+    }
+    private val playback by lazy { PlayAdapter(listener, applicationContext) }
     override fun onCreate() {
         super.onCreate()
         mediaSession = MediaSessionCompat(
@@ -110,11 +132,50 @@ class MusicService : MediaBrowserServiceCompat() {
     ) {
         Logger.e("onLoadChildren")
         if (MusicLibrary.libraries[MusicLibrary.KEY]?.isEmpty() == true) {
-            val musics = loadMusicList()
+            musics = loadMusicList()
             result.sendResult(musics)
             return
+        } else {
+            musics = MusicLibrary.libraries[MusicLibrary.KEY]?.map {
+                MediaBrowserCompat.MediaItem(it.description, FLAG_PLAYABLE)
+            }?.toMutableList()
         }
 
         result.sendResult(null)
+    }
+
+    private inner class NotificationServiceManager {
+        fun moveServiceToStatedState(state: PlaybackStateCompat) {
+            val item = playback.getMediaMetaData()
+            item?.let {
+                val notification = manager.getNotification(
+                    it, state, sessionToken!!
+                )
+
+                startForeground(MusicNotificationManager.NOTIFICATION_ID, notification)
+            }
+        }
+
+        fun updateNotificationForPause(state: PlaybackStateCompat) {
+            stopForeground(false)
+
+            val item = playback.getMediaMetaData()
+            item?.let {
+                val notification = manager.getNotification(
+                    it, state, sessionToken!!
+                )
+
+                manager.manager.notify(
+                    MusicNotificationManager.NOTIFICATION_ID,
+                    notification
+                )
+            }
+        }
+
+        fun moveServiceOutStartedState(state: PlaybackStateCompat) {
+            stopForeground(true)
+            stopSelf()
+        }
+
     }
 }

@@ -64,7 +64,7 @@ class MusicListActivity : BaseActivity<ActivityMusicListBinding>() {
     private fun initObserver(){
         vm.item.observe(this){
             //음악 목록에서 음악을 클릭
-            musicHelper.mediaTransportController?.play()
+            musicHelper.mediaTransportController?.playFromMediaId(it.description.mediaId,null)
 
             Intent(this@MusicListActivity, MusicDetailActivity::class.java).run {
                 putExtra("data",it)

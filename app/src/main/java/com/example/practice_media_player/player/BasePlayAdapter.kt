@@ -8,6 +8,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
+import android.support.v4.media.MediaMetadataCompat
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.draw.BuildDrawCacheParams
 import androidx.core.content.getSystemService
@@ -22,6 +23,8 @@ abstract class BasePlayAdapter(private val applicationContext: Context) {
     abstract fun onStop()
     abstract fun seekTo(position: Long)
     abstract fun setVolume(volume: Float)
+    abstract fun playFromMediaId(mediaId : String?)
+    abstract fun getMediaMetaData() : MediaMetadataCompat?
 
 
     private val MEDIA_VOLUME_DEFAULT = 1.0F

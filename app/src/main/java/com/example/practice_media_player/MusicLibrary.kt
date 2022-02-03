@@ -24,6 +24,13 @@ object MusicLibrary {
     val selection =
         MediaStore.Audio.Media.IS_MUSIC + " != 0 and " + MediaStore.Audio.Media.MIME_TYPE + "!='application/ogg'"
 
+
+    fun findMetaData(mediaId : String?) : MediaMetadataCompat?{
+        return mediaId?.let { id ->
+            libraries[KEY]?.first { it.description.mediaId == id }
+        }
+    }
+
     fun Context.loadMusicList(): MutableList<MediaBrowserCompat.MediaItem> {
         val ret = mutableListOf<MediaBrowserCompat.MediaItem>()
         val inCur = contentResolver.query(
