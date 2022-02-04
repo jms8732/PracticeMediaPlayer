@@ -2,12 +2,14 @@ package com.example.practice_media_player.player
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.practice_media_player.MusicLibrary
 import com.example.practice_media_player.listener.PlaybackInfoListener
 import com.example.practice_media_player.ui.MusicListActivity
+import java.lang.RuntimeException
 
 /**
  * 미디어를 실행할 때, 추상 클래스를 한번 거쳐서 실행되는 구조
@@ -71,6 +73,7 @@ class PlayAdapter(private val listener: PlaybackInfoListener, private val contex
         }else{
             if(!isPlaying()){
                 play()
+                return
             }
         }
 
@@ -78,9 +81,14 @@ class PlayAdapter(private val listener: PlaybackInfoListener, private val contex
         initializePlayer()
 
         try{
+            MusicLibrary.findMetaData(mediaId)?.let {
+                val uri = it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
+                mediaPlayer?.setDataSource(context, Uri.parse(uri))
 
+                mediaPlayer?.prepare()
+            }
         }catch (e : Exception){
-
+            throw RuntimeException("Failed",e)
         }
 
         play()
@@ -115,15 +123,15 @@ class PlayAdapter(private val listener: PlaybackInfoListener, private val contex
 
             if(mState == PlaybackStateCompat.STATE_PLAYING) position = -1
         }else
-            mediaPlayer?.run {
-                currentPosition
-            } ?: 0
+           reportPosition = mediaPlayer?.run {
+                currentPosition.toLong()
+            } ?: 0L
 
 
         val builder = PlaybackStateCompat.Builder().apply {
             setActions(getActions())
             setState(
-                PlaybackStateCompat.STATE_PLAYING,
+                mState,
                 reportPosition,
                 1.0f,
                 SystemClock.elapsedRealtime()

@@ -7,7 +7,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.practice_media_player.service.MusicService
-import com.orhanobut.logger.Logger
 
 /**
  * 순서
@@ -18,24 +17,25 @@ import com.orhanobut.logger.Logger
  */
 abstract class MusicServiceHelper(context: Context) {
     private var mediaBrowser: MediaBrowserCompat? = null
-    private var mediaController: MediaControllerCompat? = null
-    var mediaTransportController : MediaControllerCompat.TransportControls? = null
+    var mediaController: MediaControllerCompat? = null
+    var mediaTransportController: MediaControllerCompat.TransportControls? = null
 
     abstract fun onChildLoaded(
-        children : MutableList<MediaBrowserCompat.MediaItem>
+        children: MutableList<MediaBrowserCompat.MediaItem>
     )
 
-    abstract fun onPlaybackStateChanged(state : PlaybackStateCompat?)
+    abstract fun onPlaybackStateChanged(state: PlaybackStateCompat?)
+    abstract fun onMetadataChanged(metaData : MediaMetadataCompat?)
 
-    fun connect(){
+    fun connect() {
         mediaBrowser?.connect()
     }
 
-    fun disconnect(){
+    fun disconnect() {
         mediaBrowser?.disconnect()
     }
 
-    private val mediaControllerCallback = object : MediaControllerCompat.Callback(){
+    private val mediaControllerCallback = object : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             super.onPlaybackStateChanged(state)
             this@MusicServiceHelper.onPlaybackStateChanged(state)
@@ -43,6 +43,7 @@ abstract class MusicServiceHelper(context: Context) {
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             super.onMetadataChanged(metadata)
+            this@MusicServiceHelper.onMetadataChanged(metadata)
         }
     }
 
@@ -57,11 +58,15 @@ abstract class MusicServiceHelper(context: Context) {
             }
         }
 
+
     private val mediaBrowserCallback = object : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
             super.onConnected()
             mediaBrowser?.let {
                 mediaController = MediaControllerCompat(context, it.sessionToken).apply {
+                    this@MusicServiceHelper.onMetadataChanged(this.metadata)
+                    this@MusicServiceHelper.onPlaybackStateChanged(this.playbackState)
+
                     registerCallback(mediaControllerCallback)
                 }
                 mediaTransportController = mediaController?.transportControls
@@ -69,6 +74,7 @@ abstract class MusicServiceHelper(context: Context) {
                 it.subscribe(it.root, mediaBrowserSubscriptionCallback)
             }
         }
+
     }
 
     init {

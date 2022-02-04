@@ -61,7 +61,7 @@ object MusicLibrary {
                     it.putString(
                         MediaMetadataCompat.METADATA_KEY_MEDIA_URI,
                         Uri.withAppendedPath(
-                            MediaStore.Images.Media.INTERNAL_CONTENT_URI,
+                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                             id.toString()
                         ).toString()
                     )
