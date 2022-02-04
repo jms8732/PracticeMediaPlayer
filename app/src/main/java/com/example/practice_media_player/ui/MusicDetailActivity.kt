@@ -6,6 +6,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.practice_media_player.BaseActivity
 import com.example.practice_media_player.R
 import com.example.practice_media_player.databinding.ActivityMusicDetailBinding
@@ -76,9 +77,10 @@ class MusicDetailActivity : BaseActivity<ActivityMusicDetailBinding>() {
                 binding.textViewTitle.text = it.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
                 binding.textViewArtist.text = it.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
 
-                val uri = it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
+                val uri = it.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
                 Glide.with(binding.imageViewAlbumArt)
                     .load(uri)
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .into(binding.imageViewAlbumArt)
             }

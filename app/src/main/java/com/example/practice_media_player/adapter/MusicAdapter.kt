@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import com.bumptech.glide.GenericTransitionOptions
 import com.bumptech.glide.Glide
 import com.bumptech.glide.TransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -65,11 +66,12 @@ class MusicAdapter(private val vm : MusicListActivityViewModel) : ListAdapter<Me
                     binding.title.text = it.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
                     binding.artist.text = it.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
 
-                    val uri = it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
+                    val uri = it.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
+
                     Glide.with(binding.imageView)
                         .load(uri)
                         .placeholder(R.drawable.ic_launcher_foreground)
-                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .transition(GenericTransitionOptions.with(R.anim.fade_in))
                         .into(binding.imageView)
                 }
 

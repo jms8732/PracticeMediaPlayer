@@ -17,6 +17,7 @@ object MusicLibrary {
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.DISPLAY_NAME,
         MediaStore.Audio.Media.ALBUM,
+        MediaStore.Audio.Media.ALBUM_ID,
         MediaStore.Audio.Media.ARTIST,
         MediaStore.Audio.Media.DURATION
     )
@@ -52,7 +53,7 @@ object MusicLibrary {
                 val mediaItem = MediaMetadataCompat.Builder().also {
                     val id = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
                     val artist = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
-                    val album = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
+                    val album = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
 
                     val title =
                         getString(getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
@@ -65,8 +66,9 @@ object MusicLibrary {
                             id.toString()
                         ).toString()
                     )
+
                     it.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
-                    it.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                    it.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "content://media/external/audio/albumart/$album")
                     it.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                     it.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                     it.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
