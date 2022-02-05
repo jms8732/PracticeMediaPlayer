@@ -3,6 +3,7 @@ package com.example.practice_media_player
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+import com.example.practice_media_player.di.helperModules
 import com.example.practice_media_player.di.viewModelModules
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
@@ -26,7 +27,8 @@ class GlobalApplication : Application() {
 
         startKoin{
             androidContext(applicationContext)
-            modules(viewModelModules)
+            modules(viewModelModules, helperModules)
         }
     }
+
 }

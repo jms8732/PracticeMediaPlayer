@@ -64,7 +64,6 @@ class MusicService : MediaBrowserServiceCompat() {
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             Logger.i("onPlay")
             mQueueIndex = musics?.indexOfFirst { it.description.mediaId == mediaId } ?: -1
-            Logger.i("size: ${musics?.size} QueueIndex: $mQueueIndex")
 
             if (!isReadyToPlay()) return
 
@@ -142,8 +141,6 @@ class MusicService : MediaBrowserServiceCompat() {
     /**
      * 화면 이동시, 계속 호출 됨 -> if문이 없을 경우, recyclerview의 아이템이 계속 갱신되는 현상 발생
      * parentId를 이용하여 현재 key값에 맞춰서 데이터를 내려보낸다.
-     *
-     *
      */
     override fun onLoadChildren(
         parentId: String,

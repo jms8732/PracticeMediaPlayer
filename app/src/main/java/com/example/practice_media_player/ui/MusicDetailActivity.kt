@@ -11,84 +11,93 @@ import com.example.practice_media_player.BaseActivity
 import com.example.practice_media_player.R
 import com.example.practice_media_player.databinding.ActivityMusicDetailBinding
 import com.example.practice_media_player.helper.MusicServiceHelper
+import com.example.practice_media_player.service.MusicService
 import com.orhanobut.logger.Logger
+import org.koin.android.ext.android.get
 
 class MusicDetailActivity : BaseActivity<ActivityMusicDetailBinding>() {
     override fun layoutIds(): Int = R.layout.activity_music_detail
-    private lateinit var musicHelper : MusicServiceHelper
+    private val helper: MusicServiceHelper = get()
     private var isPlaying = false
+
+    private val callback = object : MediaControllerCompat.Callback() {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            when (state?.state) {
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    isPlaying = true
+                }
+                PlaybackStateCompat.STATE_STOPPED -> {
+                    isPlaying = false
+                }
+                PlaybackStateCompat.STATE_PAUSED -> {
+                    isPlaying = false
+                }
+            }
+            bindController()
+        }
+
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            metadata?.let {
+                bindUI(it)
+            }
+        }
+    }
+
+    private fun bindUI(data: MediaMetadataCompat) {
+        data.let {
+            binding.textViewTitle.text = it.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+            binding.textViewArtist.text = it.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+
+            val uri = it.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
+            Glide.with(binding.imageViewAlbumArt)
+                .load(uri)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(binding.imageViewAlbumArt)
+        }
+    }
+
+    private fun bindController() {
+        when (isPlaying) {
+            true -> {
+                binding.imageViewPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+            }
+            else -> {
+                binding.imageViewPlayPause.setImageResource(android.R.drawable.ic_media_play)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding.lifecycleOwner = this
 
         initUI()
-        initSetting()
     }
 
-    private fun initUI(){
-       binding.imageViewPlayPause.setOnClickListener {
-           Logger.i("isPlaying: $isPlaying")
-           when(isPlaying){
-               true -> musicHelper.mediaTransportController?.pause()
-               else -> {
-                   musicHelper.mediaController?.let {
-                       musicHelper.mediaTransportController?.playFromMediaId(it.metadata.description.mediaId,null)
-                   }
-               }
-           }
-       }
-    }
-
-    private fun initSetting(){
-        musicHelper = MusicConnection()
+    private fun initUI() {
+        binding.imageViewPlayPause.setOnClickListener {
+            Logger.e("isPlaying: $isPlaying")
+            when (isPlaying) {
+                true -> {
+                    helper.mediaController?.pause()
+                }
+                else -> {
+                    helper.controller?.let {
+                        helper.mediaController?.playFromMediaId(it.metadata.description.mediaId,null)
+                    }
+                }
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        Logger.i("Detail Helper: $musicHelper")
-        musicHelper.connect()
-    }
-
-    private inner class MusicConnection : MusicServiceHelper(applicationContext){
-        override fun onChildLoaded(children: MutableList<MediaBrowserCompat.MediaItem>) {
-            Logger.i("on load")
-        }
-
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            when(state?.state){
-                PlaybackStateCompat.STATE_PLAYING ->{
-                    binding.imageViewPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-                }
-                PlaybackStateCompat.STATE_PAUSED ->{
-                    binding.imageViewPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                }
-                PlaybackStateCompat.STATE_STOPPED ->{
-                    binding.imageViewPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                }
-            }
-
-            isPlaying = state?.state == PlaybackStateCompat.STATE_PLAYING
-            Logger.e("isPlaying: $isPlaying")
-        }
-
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            metadata?.let {
-                binding.textViewTitle.text = it.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                binding.textViewArtist.text = it.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
-
-                val uri = it.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
-                Glide.with(binding.imageViewAlbumArt)
-                    .load(uri)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .into(binding.imageViewAlbumArt)
-            }
-        }
+        helper.registerCallback(callback)
     }
 
     override fun onStop() {
         super.onStop()
-        musicHelper.disconnect()
+        helper.unregisterCallback(callback)
     }
 }

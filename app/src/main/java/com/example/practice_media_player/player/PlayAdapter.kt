@@ -73,8 +73,9 @@ class PlayAdapter(private val listener: PlaybackInfoListener, private val contex
         }else{
             if(!isPlaying()){
                 play()
-                return
-            }
+            }else
+                pause()
+            return
         }
 
         currentMediaId = mediaId
